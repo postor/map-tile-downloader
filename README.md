@@ -25,3 +25,5 @@ mapDownloader.run(options,function(err){
 ```
 
 This module will only work with tiles in ZXY format aka "Spherical Mercator, OpenStreetMap or Google tiles"
+
+I built this to download [NYPL MapWarper](http://maps.nypl.org/warper/) tiles for use in [urbanScratchoff](https://github.com/chriswhong/urbanscratchoff), a map toy that lets you "scratch off" a layer of historical imagery to see current imagery beneath.
