@@ -1,104 +1,61 @@
-/**
- * @module map-tile-scraper
- */
 
-/** 
- * @namespace Typedefs
- */
-
-/**
- * @typedef {Object} CoordinatesObjectType
- * @property {Number} lat - latitude degrees(must be between -90 and 90 degrees)
- * @property {Number} lng - longitude degrees (must be between -180 and 180)
- * @property {Number} sqKms - the number of square kilometers in the radius 
- * calculation.  Must be positive and less then 509e6 (surface area of earth)
- * @memberOf Typedefs
- */
-
-/**
- * @typedef {Object} ZoomObjectType
- * @property {Number} max - maximum zoom level (zoomed in).  
- * @property {Number} min - minimum zoom level (zoomed out)
- * @memberOf Typedefs
- */
-
-/**
- * @typedef {Object} OptionsObjectType
- * @property {String} baseUrl - Base URL of the map tile server
- * @property {String} rootDir - Root path of where the images will be stored
- * @property {String} mapSource - Map source selectors that serve as an easier
- * method of providing known good baseUrls for map tile servers
- * @property {String} mapSourceSuffix - File extensions of each map tile on the server
- * @property {CoordinatesObjectType} inputCoordinates - Lattitude/longitude coordinates
- * to base the area calculation on 
- * @property {ZoomObjectType} zoom - Max and min zoom levels
- * @property {Number} maxDelay - Provides a way to throttle the requests
- * @property {Boolean} xBeforeY - A Switch that provides a way to flip x and y 
- * coordinates since some map servers do it that way
- * @memberOf Typedefs
- */
-
-/**
- * Constructor for module.  
- * @param {OptionsType} options - input options. can also set via setOptions() method
- */
 module.exports = function(options){
-    var defaults = require('./map-tile-downloader-defaults.js');
-    var override = require('json-override');
-    var newOptions = override(defaults.defaults, options, true);
+    var fs = require('fs'),
+    request = require('request'),
+    Mustache = require('mustache');
 
     var tileCount = 0;
+    var numTiles = 0;
+
+    var tileCoords = {};
+
+    var tileBounds;
     
-    /**
-     * Main execution function. Once all the parameters are set, this function starts
-     * the process of calculating the square area and asynchronously downloading the tiles
-     * in randomish order.   
-     * @param {Function} callback - This function is only when errors occur with error as 
-     * the first argument
-     */
-    function run(callback){
-        var d = require('domain').create();
-        d.on('error', function(err){
-            callback(err);
-        });
-        d.run(function(){
-            fs = require('fs');
-            var inputValid = checkBounds(newOptions.inputCoordinates);
+    options.url = options.url.replace(/[{]/ig, '{{').replace(/[}]/ig, '}}')
 
-            if (inputValid){
-                var vertices = calcVertices(newOptions.inputCoordinates);
-                var numTiles = 0;
+    function run(callback) {
 
-                try {fs.mkdirSync(newOptions.rootDir, 0777);}
-                catch(err){
-                    if (err.code !== 'EEXIST') callback(err);
-                }
-                console.log('getting resources from: ' + newOptions.baseUrl);
-                // for each zoom level 
-                for (var zoomIdx=newOptions.zoom.min; zoomIdx<newOptions.zoom.max; zoomIdx++){
-                    // calculate min and max tile values
-                    var minAndMaxValues = calcMinAndMaxValues(vertices, zoomIdx);
+        try {fs.mkdirSync(options.rootDir, 0777);}
+        catch(err){
+            if (err.code !== 'EEXIST') callback(err);
+        }
+        console.log('getting resources from: ' + options.baseUrl);
 
-                    zoomFilePath = newOptions.rootDir+zoomIdx.toString() + '/';
+        tileCoords.z=options.zoom.min;
+        tileBounds=calcMinAndMaxValues(options.bbox, tileCoords.z);
+        console.log(tileBounds);
+        tileCoords.x=tileBounds.xMin;
+        tileCoords.y=tileBounds.yMin;
 
-                    try{fs.mkdirSync(zoomFilePath, 0777);}
-                    catch (err){
-                        if (err.code !== 'EEXIST') callback(err);
-                    }
-                    for (var yIdx=minAndMaxValues.yMin; yIdx<=minAndMaxValues.yMax; yIdx++){
-                        for (var xIdx=minAndMaxValues.xMin; xIdx<=minAndMaxValues.xMax; xIdx++){
-                            var delay = Math.random()*newOptions.maxDelay;
-                            setTimeout(getAndStoreTile(newOptions.baseUrl, zoomIdx, xIdx, yIdx, newOptions.rootDir), delay);
-                            numTiles++;
-                        }
-                    }
-                }
-                console.log('total number of tiles: ', numTiles);           
-            } else {
-                callback(new Error('Invalid input coordinates'));
-            }
-        });
+        getTile();
+
+        // for (var z=options.zoom.min; z<=options.zoom.max; z++){
+        //     console.log(z);
+        //     // calculate min and max tile values
+        //     var tileBounds = calcMinAndMaxValues(options.bbox, z);
+        //     console.log(tileBounds);
+
+        //     zoomFilePath = options.rootDir +'/' + z.toString() + '/';
+        //     console.log(zoomFilePath)
+
+        //     try{fs.mkdirSync(zoomFilePath, 0777);}
+        //     catch (err){
+        //         if (err.code !== 'EEXIST') callback(err);
+        //     }
+           
+            
+
+        //     // for (var y=tileBounds.yMin; yIdx<=tileBounds.yMax; y++){
+        //     //     for (var x=tileBounds.xMin; x<=minAndMaxValues.xMax; x++){
+                    
+        //     //         getAndStoreTile(options.baseUrl, z, x, y, options.rootDir);
+        //     //         numTiles++;
+        //     //     }
+        //     // }
+        // }
     }
+
+    
 
     /* Diagram of Vertices
     (xMin, yMax)     (xMax, yMax)
@@ -123,29 +80,76 @@ module.exports = function(options){
         }
     }
 
-    function getAndStoreTile(baseUrl, zoom, x, y, rootDir){
-        return function(){
+    function getTile(){
+        console.log('gettile',tileCoords);
+        
+        //add logic for looping through x, y and z here.
 
-            var http = require('http-get');
+        
+        console.log(options.url);
+        var url = Mustache.render(options.url,tileCoords);
+        console.log(url);
+
+        zPath = options.rootDir +'/' + tileCoords.z.toString() + '/';
+        console.log(zPath)
+
+        try{fs.mkdirSync(zPath, 0777);}
+        catch (err){
+            if (err.code !== 'EEXIST') callback(err);
+        }
+
+        xPath = zPath + tileCoords.x.toString();
+
+        try{fs.mkdirSync(xPath, 0777);}
+        catch (err){
+            if (err.code !== 'EEXIST') callback(err);
+        }
+
+        var ws = fs.createWriteStream(xPath + '/' + tileCoords.y + '.png');
+        ws.on('error', function(err) { console.log(err); });
+        ws.on('finish', function() { //increment y
+            tileCoords.y++;
+            if(tileCoords.y<=tileBounds.yMax) {
+                getTile();
+            } else { //increment x
+                tileCoords.x++;
+                tileCoords.y=tileBounds.yMin;
+                if(tileCoords.x<=tileBounds.xMax) {
+                    getTile();
+                } else { //increment z
+                    tileCoords.z++;
+                    tileBounds=calcMinAndMaxValues(options.bbox, tileCoords.z);
+                    tileCoords.x=tileBounds.xMin;
+                    tileCoords.y=tileBounds.yMin;
+                    getTile();
+                }
+            }
+        });
+        request(url).pipe(ws);
+
+        // return function(){
+
+        //     var http = require('http-get');
             
-            var fullUrl = buildUrl(baseUrl, zoom, x, y);
-            var fullPath = buildPath(rootDir, zoom, x, y);
-            var dirPath = (!newOptions.xBeforeY) ? 
-                buildDirPath(rootDir, zoom, y) : 
-                buildDirPath(rootDir, zoom, x);   
+        //     var fullUrl = buildUrl(baseUrl, zoom, x, y);
+        //     var fullPath = buildPath(rootDir, zoom, x, y);
+        //     var dirPath = (!newOptions.xBeforeY) ? 
+        //         buildDirPath(rootDir, zoom, y) : 
+        //         buildDirPath(rootDir, zoom, x);   
 
-            fullUrl += newOptions.mapSourceSuffix; 
+        //     fullUrl += newOptions.mapSourceSuffix; 
 
-            try {fs.mkdirSync(dirPath, 0777);}
-            catch(err){
-                if (err.code !== 'EEXIST') throw err;
-            } 
+        //     try {fs.mkdirSync(dirPath, 0777);}
+        //     catch(err){
+        //         if (err.code !== 'EEXIST') throw err;
+        //     } 
 
-            http.get(fullUrl, fullPath, function(err){
-                if (err) throw err; 
-                tileCount += 1;
-            });
-        };
+        //     http.get(fullUrl, fullPath, function(err){
+        //         if (err) throw err; 
+        //         tileCount += 1;
+        //     });
+        // };
+
     }
 
     function buildDirPath(rootDir, zoom, secondParam){
@@ -173,37 +177,17 @@ module.exports = function(options){
         return (rtnString);
     }
 
-    function calcMinAndMaxValues(vertices, zoom){
-        var minAndMaxObj = {};
+    //given a bounding box and zoom level, calculate min and max
+    function calcMinAndMaxValues(bbox, zoom){
+        var tileBounds = {};
 
         /* Not sure why yMin and yMax are transposed on the tile coordinate system */
-        minAndMaxObj.yMax = convLat2YTile(vertices.lowerLeft.lat, zoom);
-        minAndMaxObj.xMin = convLon2XTile(vertices.lowerLeft.lon, zoom);
-        minAndMaxObj.yMin = convLat2YTile(vertices.upperRight.lat, zoom);
-        minAndMaxObj.xMax = convLon2XTile(vertices.upperRight.lon, zoom);
+        tileBounds.yMax = lat2tile(bbox[0], zoom);
+        tileBounds.xMin = long2tile(bbox[1], zoom);
+        tileBounds.yMin = lat2tile(bbox[2], zoom);
+        tileBounds.xMax = long2tile(bbox[3], zoom);
 
-        return minAndMaxObj;
-    }
-
-    function calcVertices(result){
-        var vertices = {};
-        var radius = calcRadius(result.sqKms);
-        var distance = radius * Math.SQRT2;
-        var centerRadLat = convDecToRad(result.lat);
-        var centerRadLon = convDecToRad(result.lng);
-
-        vertices.upperRight = calcEndPoint(centerRadLat, centerRadLon,
-            distance, Math.PI/4);
-        vertices.lowerRight = calcEndPoint(centerRadLat, centerRadLon,
-            distance, 3*Math.PI/4);
-        vertices.lowerLeft = calcEndPoint(centerRadLat, centerRadLon,
-            distance, 5*Math.PI/4);
-        vertices.upperLeft = calcEndPoint(centerRadLat, centerRadLon,
-            distance, 7*Math.PI/4);
-
-        //printVertices(vertices);
-
-        return vertices;
+        return tileBounds;
     }
 
     function calcRadius(sqKms){
@@ -225,14 +209,9 @@ module.exports = function(options){
         return endPoint;
     }
 
-    function convLon2XTile(lon, zoom){
-        return (Math.floor(((lon*180/Math.PI)+180)/360*Math.pow(2,zoom)));
-    }
-
-    function convLat2YTile(lat, zoom){
-        return (Math.floor((1-Math.log(Math.tan(lat) + 
-            1/Math.cos(lat))/Math.PI)/2 *Math.pow(2,zoom)));
-    }
+    //courtesy of http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers
+    function long2tile(lon,zoom) { return (Math.floor((lon+180)/360*Math.pow(2,zoom))); }
+    function lat2tile(lat,zoom)  { return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))); }
 
     function convDecToRad(dec){
         return (dec*Math.PI/180);
