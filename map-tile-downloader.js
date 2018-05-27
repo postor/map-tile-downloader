@@ -34,8 +34,16 @@ module.exports = {
 
         //recursive function to iterate over each z, x, and y tile name
         //
+        var subdomainIndex = 0;
         function getTile() {
             
+            if(options.subdomains&&options.subdomains.length){
+                tileCoords.s = options.subdomains[subdomainIndex]
+                subdomainIndex++
+                if(subdomainIndex>=options.subdomains.length){
+                    subdomainIndex = 0
+                }
+            }
             //render the url template
             var url = Mustache.render(options.url,tileCoords);
             console.log('Fetching tile: ' + url);
@@ -55,9 +63,12 @@ module.exports = {
             }
 
             //create writestream as z/x/y.png
-            var ws = fs.createWriteStream(xPath + '/' + tileCoords.y + '.png');
-            ws.on('error', function(err) { console.log(err); });
-            ws.on('finish', function() { 
+            var ws = (xPath + '/' + tileCoords.y + '.png');
+            
+            fs.appendFileSync('to-download.csv',`${url},${ws}\n`);
+            //request(url).pipe(ws);
+            setTimeout(nextTic);
+            function nextTic() { 
                 tileCount++;
 
                 //increment y
@@ -83,8 +94,7 @@ module.exports = {
                         }  
                     }
                 }
-            });
-            request(url).pipe(ws);
+            }
         }
 
         //given a bounding box and zoom level, calculate x and y tile ranges
