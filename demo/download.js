@@ -5,7 +5,7 @@ var fs = require('fs')
 var lineNr = 0, listFile = 'to-download.csv', lineFile = 'current-line.txt', failFile = 'fail-list.csv';
 
 if(fs.existsSync(lineFile)){
-  lineNr = parseInt(fs.readSync(lineFile))
+  lineNr = parseInt(fs.readFileSync(lineFile))
 }
 
 var s = fs.createReadStream(listFile)
