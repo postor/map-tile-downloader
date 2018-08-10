@@ -32,9 +32,31 @@ var s = fs.createReadStream(listFile)
       console.log('Read entire file.')
     })
   );
-
+const concurrency = 1
+let concurrent = 1
 function downloadImage(line) {
   const [url,dest] = line.split(',')
+
+  if(process.platform == 'linux'){
+    if(concurrent<concurrency){      
+      concurrent++;
+      require('child_process').exec(`wget -O ${dest} "${url}"`,(err)=>{
+        if(err){
+          console.log('wget error!'+url)        
+          fs.appendFileSync(failFile,`${line}\n`);
+        }
+        concurrent--;
+      })
+    }else{
+      try{
+        require('child_process').execSync(`wget -O ${dest} "${url}"`)
+      }catch(e){        
+        console.log('wget error!'+url)        
+        fs.appendFileSync(failFile,`${line}\n`);
+      }
+    }
+    return 
+  }
 
   // Download to a directory and save with the original filename
 
