@@ -77,9 +77,9 @@ async function downloadImage(line) {
 }
 
 function getWgetCommand(dest,url,proxy){
-  if(proxy.indexOf('https')>=0){
-    return `https_proxy=${proxy} wget -O ${dest} "${url}"`
+  if(proxy.isHttps){
+    return `https_proxy=${proxy.url} wget -O ${dest} "${url}"`
   }
   const httpUrl = url.replace('https://','http://')
-  return `http_proxy=${proxy} wget -O ${dest} "${httpUrl}"`
+  return `http_proxy=${proxy.url} wget -O ${dest} "${httpUrl}"`
 }
