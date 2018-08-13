@@ -36,10 +36,11 @@ var s = fs.createReadStream(listFile)
   );
 const concurrency = 1
 let concurrent = 1
+let needNewProxy = false
 async function downloadImage(line) {
   const [url,dest] = line.split(',')
-  const proxy = await getProxy()
-
+  const proxy = await getProxy(needNewProxy)
+  needNewProxy = false
   if(process.platform == 'linux'){
     if(concurrent<concurrency){      
       concurrent++;
@@ -47,7 +48,7 @@ async function downloadImage(line) {
         if(err){
           console.log('wget error!'+url)        
           fs.appendFileSync(failFile,`${line}\n`);
-          getProxy(true)
+          needNewProxy = true
         }
         concurrent--;
       })
@@ -57,7 +58,7 @@ async function downloadImage(line) {
       }catch(e){        
         console.log('wget error!'+url)        
         fs.appendFileSync(failFile,`${line}\n`);
-        getProxy(true)
+        needNewProxy = true
       }
     }
     return 
