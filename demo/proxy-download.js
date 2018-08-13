@@ -38,7 +38,7 @@ const concurrency = 1
 let concurrent = 1
 async function downloadImage(line) {
   const [url,dest] = line.split(',')
-  const proxy = getProxy()
+  const proxy = await getProxy()
 
   if(process.platform == 'linux'){
     if(concurrent<concurrency){      
