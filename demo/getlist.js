@@ -4,6 +4,7 @@ var options = {
     //url : 'http://t{s}.tianditu.cn/DataServer?T=vec_w&X={x}&Y={y}&L={z}', //天地图
     url : 'https://mt{s}.google.com/vt/lyrs=s&?x={x}&y={y}&z={z}', //谷歌
     rootDir: 'tiles',
+    extension: '.png',
     bbox : [35,75,50,95], //[south,west,north,east]
     zoom : {
         max : 18,

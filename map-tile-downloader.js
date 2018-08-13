@@ -63,7 +63,7 @@ module.exports = {
             }
 
             //create writestream as z/x/y.png
-            var ws = (xPath + '/' + tileCoords.y + '.png');
+            var ws = (xPath + '/' + tileCoords.y + (options.extension||'.png'));
             
             fs.appendFileSync('to-download.csv',`${url},${ws}\n`);
             //request(url).pipe(ws);
