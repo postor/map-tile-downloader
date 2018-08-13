@@ -5,6 +5,7 @@
   "main": "map-tile-scraper.js",
   "dependencies": {
     "event-stream": "^3.3.4",
+    "free-http-proxy": "^1.0.0",
     "fs": "0.0.2",
     "image-downloader": "^3.3.0",
     "mustache": "^2.2.0",
