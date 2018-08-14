@@ -40,7 +40,11 @@ let needNewProxy = false
 async function downloadImage(line) {
   const [url,dest] = line.split(',')
   const proxy = await getProxy(needNewProxy)
-  needNewProxy = false
+  if(needNewProxy){
+    needNewProxy = false
+    console.log(`new proxy!`,proxy)
+  }
+  
   if(process.platform == 'linux'){
     if(concurrent<concurrency){      
       concurrent++;
@@ -79,8 +83,8 @@ async function downloadImage(line) {
 
 function getWgetCommand(dest,url,proxy){
   if(proxy.isHttps){
-    return `https_proxy=${proxy.url} wget -O ${dest} "${url}"`
+    return `https_proxy=${proxy.url} wget -O ${dest} -T 3 --tries=3 "${url}"`
   }
   const httpUrl = url.replace('https://','http://')
-  return `http_proxy=${proxy.url} wget -O ${dest} "${httpUrl}"`
+  return `http_proxy=${proxy.url} wget -O ${dest} -T 3 --tries=3 "${httpUrl}"`
 }
