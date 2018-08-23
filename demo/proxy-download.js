@@ -83,8 +83,8 @@ async function downloadImage(line) {
 
 function getWgetCommand(dest,url,proxy){
   if(proxy.isHttps){
-    return `https_proxy=${proxy.url} wget -O ${dest} -T 3 --tries=3 "${url}"`
+    return `https_proxy=${proxy.url} curl "${url}" --create-dirs -o ${dest} --max-time 3`
   }
   const httpUrl = url.replace('https://','http://')
-  return `http_proxy=${proxy.url} wget -O ${dest} -T 3 --tries=3 "${httpUrl}"`
+  return `https_proxy=${proxy.url} curl "${httpUrl}" --create-dirs -o ${dest} --max-time 3`
 }
