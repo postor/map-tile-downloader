@@ -4,16 +4,19 @@ var fs = require('fs')
   getProxy = require('./proxy')
 
 
-var lineNr = 0, listFile = 'to-download.csv', lineFile = 'current-line.txt', failFile = 'fail-list.csv';
+var lineNr = 0, lastLineNr=0, listFile = 'to-download.csv', lineFile = 'current-line.txt', failFile = 'fail-list.csv';
 
 if(fs.existsSync(lineFile)){
-  lineNr = parseInt(fs.readFileSync(lineFile))
+  lastLineNr = parseInt(fs.readFileSync(lineFile))
 }
 
 var s = fs.createReadStream(listFile)
   .pipe(es.split())
   .pipe(es.mapSync(async function (line) {
-
+    if(lineNr<lastLineNr){
+      lineNr++;
+      return;
+    }
     // pause the readstream
     s.pause();
 
