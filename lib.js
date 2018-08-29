@@ -14,7 +14,7 @@ async function downloadImageTry(proxy,url,dest){
   } 
 }
 
-export async function downloadImageAsync(url,dest) {
+module.exports = async function downloadImageAsync(url,dest) {
   let proxy = await getProxy()
   while(!downloadImageTry(proxy,url,dest)){
     proxy = await getProxy(true)

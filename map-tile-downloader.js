@@ -1,5 +1,5 @@
 var fs = require('fs'),
-download = require('./lib').downloadImageAsync,
+download = require('./lib'),
 Mustache = require('mustache');
 
 module.exports = {
