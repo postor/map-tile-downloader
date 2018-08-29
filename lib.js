@@ -1,3 +1,6 @@
+const Proxies = require('free-http-proxy');
+const proxies = new Proxies();
+
 async function getProxy(forceNew = false) {
   if(!proxies.current){
     await proxies.loadPage()
