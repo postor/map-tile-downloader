@@ -1,5 +1,5 @@
 var fs = require('fs'),
-request = require('request'),
+download = require('./lib').downloadImageAsync,
 Mustache = require('mustache');
 
 module.exports = {
@@ -35,7 +35,7 @@ module.exports = {
         //recursive function to iterate over each z, x, and y tile name
         //
         var subdomainIndex = 0;
-        function getTile() {
+        async function getTile() {
             
             if(options.subdomains&&options.subdomains.length){
                 tileCoords.s = options.subdomains[subdomainIndex]
@@ -50,22 +50,15 @@ module.exports = {
 
             //create z directory in the root directory
             zPath = options.rootDir + '/' + tileCoords.z.toString() + '/';
-            try{fs.mkdirSync(zPath, 0777);}
-            catch (err){
-                if (err.code !== 'EEXIST') callback(err);
-            }
 
             //create x directory in the z directory
             xPath = zPath + tileCoords.x.toString();
-            try{fs.mkdirSync(xPath, 0777);}
-            catch (err){
-                if (err.code !== 'EEXIST') callback(err);
-            }
 
             //create writestream as z/x/y.png
             var ws = (xPath + '/' + tileCoords.y + (options.extension||'.png'));
             if(!fs.existsSync(ws)){
-                fs.appendFileSync('to-download.csv',`${url},${ws}\n`);            
+                //fs.appendFileSync('to-download.csv',`${url},${ws}\n`);   
+                await download(url,ws)         
             }
             
             //request(url).pipe(ws);
