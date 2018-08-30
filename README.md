@@ -1,31 +1,42 @@
 # map-tile-downloader
 
 NodeJS module that downloads all the map tiles contained within a lat/lon bounding box at the specified zoom levels.  
+地图瓦片贴图下载器
+
+## 特性 | features
+
+- 自动切换代理 | auto change proxy
+- 自动跳过已下载 | auto skip downloaded
 
 
-Example usage:
+## 使用方法 | usage
+
+修改`config.js`来适应你的使用场景 | modify `config.js` to suit your use case
+
 ```
-var options = {
-    url : 'http://maps.nypl.org/warper/layers/tile/909/{z}/{x}/{y}.png',
-    rootDir: 'tiles',
-    bbox : [40.693004,-74.030256,40.719681,-73.909063], //[south,west,north,east]
-    zoom : {
-        max : 18,
-        min : 14
-    }
+module.exports = {
+  //url : 'http://t{s}.tianditu.cn/DataServer?T=vec_w&X={x}&Y={y}&L={z}', //天地图
+  //subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],//天地图
+  url: 'https://mt{s}.google.com/vt/lyrs=s&?x={x}&y={y}&z={z}', //google
+  subdomains: ['0', '1', '2', '3'], //google
+  rootDir: 'tiles',
+  extension: '.png',
+  //bbox = left,bottom,right,top 左下右上
+  //bbox = min Longitude , min Latitude , max Longitude , max Latitude 
+  bbox: [-180, -85.0511287798, 180, 85.0511287798], // whole map 默认bbox为整个地图
+  zoom: {
+    max: 5,
+    min: 1,
+  },
 };
-
-var mapDownloader = require('./map-tile-downloader/map-tile-downloader.js');
-
-//execute mapDownloader
-mapDownloader.run(options,function(err){
-  console.log(err);
-  process.exit();
-});
 ```
 
-This module will only work with tiles in ZXY format aka "Spherical Mercator, OpenStreetMap or Google tiles"
+运行`node index.js`启动下载进程 | run `node index.js` to download tiles
 
-I built this to download [NYPL MapWarper](http://maps.nypl.org/warper/) tiles for use in [urbanScratchoff](https://github.com/chriswhong/urbanscratchoff), a map toy that lets you "scratch off" a layer of historical imagery to see current imagery beneath.
+```
+node index.js
+```
 
-Forked from [https://github.com/ianwcarlson/map-tile-downloader](https://github.com/ianwcarlson/map-tile-downloader)
+如果因网络错误部分图片缺失，只需重新运行`node index.js`即可 | if you got error and fail to download some tile, just rerun `node index.js`
+
+
