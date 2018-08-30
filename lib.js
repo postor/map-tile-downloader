@@ -25,3 +25,13 @@ module.exports = async function downloadImageAsync(url,dest) {
     proxy = await getProxy(true)
   }  
 }
+
+
+
+function getWgetCommand(dest,url,proxy){
+  if(proxy.isHttps){
+    return `https_proxy=${proxy.url} curl "${url}" --create-dirs -o ${dest} --max-time 3`
+  }
+  const httpUrl = url.replace('https://','http://')
+  return `https_proxy=${proxy.url} curl "${httpUrl}" --create-dirs -o ${dest} --max-time 3`
+}
