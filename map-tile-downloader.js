@@ -57,8 +57,10 @@ module.exports = {
             //create writestream as z/x/y.png
             var ws = (xPath + '/' + tileCoords.y + (options.extension||'.png'));
             if(!fs.existsSync(ws)){
-                //fs.appendFileSync('to-download.csv',`${url},${ws}\n`);   
+                //fs.appendFileSync('to-download.csv',`${url},${ws}\n`);                   
                 await download(url,ws)         
+            }else{
+                console.log(`file ${ws} exists, skip`)
             }
             
             //request(url).pipe(ws);
