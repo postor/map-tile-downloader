@@ -9,10 +9,12 @@ async function getProxy(forceNew = false) {
 }
 
 async function downloadImageTry(proxy,url,dest){
+  var cmd = getWgetCommand(dest,url,proxy)
   try{
-    require('child_process').execSync(getWgetCommand(dest,url,proxy))
+    require('child_process').execSync(cmd)
     return true
   }catch(e){
+    console.log(`command fail: ${cmd}`)
     return false
   } 
 }
