@@ -6,9 +6,8 @@ module.exports = {
   subdomains: ['0', '1', '2', '3'], //google
   rootDir: 'tiles',
   extension: '.png',
-  //bbox = left,bottom,right,top
-  //bbox = min Longitude , min Latitude , max Longitude , max Latitude 
-  bbox: [-180, -85.0511287798, 180, 85.0511287798],
+  //[35,75,50,95], //[south,west,north,east]
+  bbox: [-85.0511287798, -180, 85.0511287798, 180],
   zoom: {
     max: 5,
     min: 1,
