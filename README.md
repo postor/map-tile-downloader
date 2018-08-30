@@ -34,6 +34,10 @@ module.exports = {
 
 ```
 node index.js
+
+# or forever
+
+forever start index.js
 ```
 
 如果因网络错误部分图片缺失，只需重新运行`node index.js`即可 | if you got error and fail to download some tile, just run `node index.js` agian
