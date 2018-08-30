@@ -98,9 +98,9 @@ module.exports = {
 
             /* Not sure why yMin and yMax are transposed on the tile coordinate system */
             tileBounds.xMin = long2tile(bbox[0], zoom);
-            tileBounds.yMin = lat2tile(bbox[1], zoom);
+            tileBounds.yMin = lat2tile(bbox[3], zoom);
             tileBounds.xMax = long2tile(bbox[2], zoom);
-            tileBounds.yMax = lat2tile(bbox[3], zoom);
+            tileBounds.yMax = lat2tile(bbox[1], zoom);
 
             return tileBounds;
         }
